@@ -1,0 +1,25 @@
+serviceAccounts:
+    server:
+        name: ${name}
+        annotations:
+            eks.amazonaws.com/role-arn: ${arn}
+server:
+  sidecarContainers:
+    aws-sigv4-proxy-sidecar:
+        image: public.ecr.aws/aws-observability/aws-sigv4-proxy:1.0
+        args:
+        - --name
+        - aps
+        - --region
+        - ${region}
+        - --host
+        - aps-workspaces.${region}.amazonaws.com
+        - --port
+        - :8005
+        ports:
+        - name: aws-sigv4-proxy
+          containerPort: 8005
+  statefulSet:
+      enabled: "true"
+  remoteWrite:
+      - url: http://localhost:8005/workspaces/${workspace}/api/v1/remote_write
